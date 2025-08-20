@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: windows-latest
     env:
-      PROJECT_PATH: ./DEMO/skinet/API
+      PROJECT_PATH: ./DEMO/skinet/API/API.csproj
     permissions:
       contents: read #This is required for actions/checkout
 
