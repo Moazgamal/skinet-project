@@ -15,13 +15,14 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<StoreContext>(opt =>
 {
     opt.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        sqlOptions => sqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 5,
-            maxRetryDelay: TimeSpan.FromSeconds(10),
-            errorNumbersToAdd: null
-        ));
+        builder.Configuration.GetConnectionString("DefaultConnection")
+        );
 });
+// sqlOptions => sqlOptions.EnableRetryOnFailure(
+//             maxRetryCount: 5,
+//             maxRetryDelay: TimeSpan.FromSeconds(10),
+//             errorNumbersToAdd: null
+//         )
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -77,3 +78,5 @@ app.Run();
 
 
 // Server=localhost,1433;Database=skinet;User Id=SA;Password=StrongP@ssw0rd1;TrustServerCertificate=True
+// refined-stinkbug-32865.upstash.io:6379,password=AYBhAAIjcDE4MzAzZDNlZmE0YWE0NzJlODE1MjE5NzEyNjY0NjNjM3AxMA,ssl=true,abortConnection=False
+
