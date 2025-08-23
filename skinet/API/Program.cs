@@ -15,14 +15,15 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<StoreContext>(opt =>
 {
     opt.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlOptions => sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null
+        )
         );
 });
-// sqlOptions => sqlOptions.EnableRetryOnFailure(
-//             maxRetryCount: 5,
-//             maxRetryDelay: TimeSpan.FromSeconds(10),
-//             errorNumbersToAdd: null
-//         )
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -40,6 +41,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddIdentityApiEndpoints<AppUser>()
     .AddEntityFrameworkStores<StoreContext>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<ICouponService, CouponService>();
 builder.Services.AddSignalR();
 var app = builder.Build();
 
