@@ -2,6 +2,7 @@ using API.RequestHelpers;
 using Core.Entities;
 using Core.Interfaces;
 using Core.Specifications;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
@@ -10,6 +11,7 @@ namespace API.Controllers;
 
 public class ProductsController(IUnitOfWork unit) : BaseApiController
 {
+    [Cache(600)]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Product>>> GetProducts([FromQuery] ProductSpecParams specParams)
     {
@@ -18,6 +20,8 @@ public class ProductsController(IUnitOfWork unit) : BaseApiController
 
         return await CreatePagedResult(unit.Repository<Product>(), spec, specParams.PageIndex, specParams.PageSize);
     }
+
+    [Cache(600)]
     [HttpGet("{id:int}")]
     public async Task<ActionResult<Product>> GetProduct(int id)
     {
@@ -26,6 +30,9 @@ public class ProductsController(IUnitOfWork unit) : BaseApiController
             return NotFound();
         return product;
     }
+
+    [InvalidateCache("api/products|")]
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<Product>> CreateProduct(Product product)
     {
@@ -34,6 +41,9 @@ public class ProductsController(IUnitOfWork unit) : BaseApiController
             return CreatedAtAction("GetProduct", new { id = product.Id }, product);
         return BadRequest("Problem creating product");
     }
+
+    [InvalidateCache("api/products|")]
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:int}")]
     public async Task<ActionResult> UpdateProduct(int id, Product product)
     {
@@ -46,6 +56,9 @@ public class ProductsController(IUnitOfWork unit) : BaseApiController
         }
         return BadRequest("Problem updating the product");
     }
+
+    [InvalidateCache("api/products|")]
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> DeleteProduct(int id)
     {
@@ -58,12 +71,16 @@ public class ProductsController(IUnitOfWork unit) : BaseApiController
         }
         return BadRequest("Problem deleting the product");
     }
+
+    [Cache(10000)]
     [HttpGet("brands")]
     public async Task<ActionResult<IReadOnlyList<string>>> GetBrands()
     {
         var spec = new BrandListSpecification();
         return Ok(await unit.Repository<Product>().ListAsync(spec));
     }
+
+    [Cache(10000)]
     [HttpGet("types")]
     public async Task<ActionResult<IReadOnlyList<string>>> GetTypes()
     {

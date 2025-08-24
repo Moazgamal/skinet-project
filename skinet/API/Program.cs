@@ -4,6 +4,7 @@ using Core.Entities;
 using Core.Interfaces;
 using Infrastructure.Data;
 using Infrastructure.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 
@@ -24,6 +25,8 @@ builder.Services.AddDbContext<StoreContext>(opt =>
         );
 });
 
+
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -37,8 +40,10 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(config =>
     return ConnectionMultiplexer.Connect(configuration);
 });
 builder.Services.AddSingleton<ICartService, CartService>();
+builder.Services.AddSingleton<IResponseCacheService, ResponseCacheService>();
 builder.Services.AddAuthorization();
 builder.Services.AddIdentityApiEndpoints<AppUser>()
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<StoreContext>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
@@ -67,8 +72,9 @@ try
     using var scope = app.Services.CreateScope();
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<StoreContext>();
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
     await context.Database.MigrateAsync();
-    await StoreContextSeed.SeedAsync(context);
+    await StoreContextSeed.SeedAsync(context, userManager);
 }
 catch (Exception ex)
 {
@@ -77,8 +83,4 @@ catch (Exception ex)
 }
 
 app.Run();
-
-
-// Server=localhost,1433;Database=skinet;User Id=SA;Password=StrongP@ssw0rd1;TrustServerCertificate=True
-// refined-stinkbug-32865.upstash.io:6379,password=AYBhAAIjcDE4MzAzZDNlZmE0YWE0NzJlODE1MjE5NzEyNjY0NjNjM3AxMA,ssl=true,abortConnection=False
 
